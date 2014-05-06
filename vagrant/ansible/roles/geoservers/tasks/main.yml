@@ -1,0 +1,42 @@
+- name: Install tomcat
+  yum: pkg={{ item }} state=installed
+  sudo: yes
+  with_items:
+    - java-1.6.0
+    - tomcat6
+    - unzip
+
+- name: Set GEOSERVER_DATA_DIR
+  copy: src=tomcat.sh dest=/etc/profile.d/tomcat.sh
+  sudo: yes
+
+- name: Ensure tomcat6 is running
+  service: name=tomcat6 state=restarted
+  sudo: yes
+
+- name: Check if geoserver.war was already downloaded
+  stat: path=/tmp/geoserver-2.5-war.zip
+  register: zip_path
+
+- name: Download geoserver.war
+  get_url: url=http://sourceforge.net/projects/geoserver/files/GeoServer/2.5/geoserver-2.5-war.zip dest=/tmp/geoserver-2.5-war.zip
+  when: zip_path.stat.exists == false
+
+- name: Check if geoserver.war was already deployed
+  stat: path=/usr/share/tomcat6/webapps/geoserver.war
+  register: war_path
+
+- name: Publish geoserver.war
+  #unarchive: src=/tmp/geoserver-2.5-war.zip dest=/tmp/
+  shell: unzip /tmp/geoserver-2.5-war.zip geoserver.war -d /usr/share/tomcat6/webapps/
+  when: war_path.stat.exists == false
+  sudo: yes
+
+- name: Create workspace
+  local_action: command curl -u {{ user }}:{{ password }} -X POST -H 'Content-type:application/json' -T ./roles/geoservers/files/workspace.json http://{{ inventory_hostname }}:8080/geoserver/rest/workspaces.json
+
+- name: Create data store
+  local_action: command curl -u {{ user }}:{{ password }} -X POST -H 'Content-type:application/json' -T ./roles/geoservers/files/datastore.json http://{{ inventory_hostname }}:8080/geoserver/rest/workspaces/perftest/datastores.json
+
+- name: Create feature type
+  local_action: command curl -u {{ user }}:{{ password }} -X POST -H 'Content-type:application/json' -T ./roles/geoservers/files/featuretype.json http://{{ inventory_hostname }}:8080/geoserver/rest/workspaces/perftest/datastores/perftest-ds/featuretypes.json

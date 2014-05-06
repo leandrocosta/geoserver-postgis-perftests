@@ -1,0 +1,15 @@
+- name: Check if Apache JMeter exists
+  stat: path=~/apache-jmeter-2.11/
+  register: jmeter_path
+
+- name: Check if Apache JMeter was already downloaded
+  stat: path=/tmp/apache-jmeter-2.11.tgz
+  register: tgz_path
+
+- name: Download Apache JMeter
+  get_url: url=http://ftp.unicamp.br/pub/apache//jmeter/binaries/apache-jmeter-2.11.tgz dest=/tmp/apache-jmeter-2.11.tgz
+  when: tgz_path.stat.exists == false
+
+- name: Unarchive Apache JMeter
+  unarchive: src=/tmp/apache-jmeter-2.11.tgz dest=~/
+  when: jmeter_path.stat.exists == false

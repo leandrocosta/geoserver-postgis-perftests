@@ -1,0 +1,12 @@
+---
+- hosts: pgservers
+  roles:
+    - pgservers
+
+- hosts: geoservers
+  roles:
+    - geoservers
+
+- hosts: jmeterservers
+  roles:
+    - jmeterservers

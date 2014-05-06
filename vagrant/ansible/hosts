@@ -1,0 +1,8 @@
+[pgservers]
+localhost ansible_connection=local
+
+[geoservers]
+localhost ansible_connection=local
+
+[jmeterservers]
+localhost ansible_connection=local

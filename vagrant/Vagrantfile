@@ -1,0 +1,26 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = "centos-6.4-i386"
+  config.vm.box_url = "http://developer.nrel.gov/downloads/vagrant-boxes/CentOS-6.4-i386-v20130731.box"
+
+  config.vm.define :pgservers do |config|
+      config.vm.hostname = "pgserver.local"
+      config.vm.network "forwarded_port", guest: 5432, host: 15432
+      config.vm.network "private_network", ip: "192.168.33.11"
+  end
+
+  config.vm.define :geoservers do |config|
+      config.vm.hostname = "geoserver.local"
+      config.vm.network "forwarded_port", guest: 8080, host: 18080
+      config.vm.network "private_network", ip: "192.168.33.12"
+  end
+
+  config.vm.provision "ansible" do |ansible|
+      ansible.playbook = "ansible/site.yml"
+      ansible.verbose = "true"
+  end
+end

@@ -1,0 +1,75 @@
+---
+
+# source: How to install PostGIS 2.0 on CentOS 6 from packages [ http://trac.osgeo.org/postgis/wiki/UsersWikiPostGIS20CentOS6pgdg ]
+
+- name: Configure YUM
+  copy: src=CentOS-Base.repo dest=/etc/yum.repos.d/CentOS-Base.repo
+  sudo: yes
+
+- name: Check if PGDG Repositiry is already intalled
+  stat: path=/etc/yum.repos.d/pgdg-93-centos.repo
+  register: pgdg_path
+
+- name: Download and install PGDG Repository RPM file
+  yum: pkg={{ item }} state=installed
+  sudo: yes
+  with_items:
+    - http://yum.postgresql.org/9.3/redhat/rhel-6-i386/pgdg-centos93-9.3-1.noarch.rpm
+    - http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+  when: pgdg_path.stat.exists == false
+
+- name: Install PostGIS
+  yum: pkg={{ item }} state=installed
+  sudo: yes
+  with_items:
+    - postgresql93-server
+    - postgis2_93
+  notify:
+    - init postgresql-9.3
+    - start postgresql-9.3
+    - chkconfig postgresql-9.3
+    - create extension postgis
+
+- name: Ensure dependencies are installed
+  yum: pkg={{ item }} state=installed
+  sudo: yes
+  with_items:
+    - python-psycopg2 #centos64: python-psycopg2.x86_64
+    - postgresql93-contrib #centos64: postgresql92-contrib.x86_64
+
+- name: Create password file
+  template: src='pgpass.j2' dest='~/.pgpass' mode=600
+
+- name: Ensure user is created
+  #postgresql_user: login_user='postgres' login_password='postgres' name='perftest' password='perftest'
+  postgresql_user: login_user='postgres' name='perftest' password='perftest'
+  sudo: yes
+  sudo_user: postgres
+
+- name: Ensure database is created
+  #postgresql_db: login_user='postgres' login_password='postgres' name='perftest' template='template_postgis'
+  postgresql_db: login_user='postgres' name='perftest' template='template_postgis'
+  sudo: yes
+  sudo_user: postgres
+
+- name: Create extension tablefunc
+  command: psql -d perftest -U postgres -c "CREATE EXTENSION IF NOT EXISTS tablefunc;"
+  sudo: yes
+  sudo_user: postgres
+
+- name: Grant privileges
+  postgresql_privs: login_user='postgres' login_password='postgres' db='perftest' role='perftest' objs=ALL_IN_SCHEMA privs=ALL
+  sudo: yes
+  sudo_user: postgres
+
+- name: Copy files to dbserver
+  copy: src={{ item }} dest=/tmp/{{ item }}
+  with_items:
+    - gendata.sql
+    - createtables.sql
+
+- name: Create tables
+  command: psql -d perftest -U perftest -f /tmp/createtables.sql
+
+- name: Generate data
+  command: psql -d perftest -U perftest -f /tmp/gendata.sql

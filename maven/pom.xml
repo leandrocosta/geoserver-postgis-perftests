@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>leandrocosta</groupId>
+    <artifactId>geoserver-postgis-perftests</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>eoserver-postgis-perftests</name>
+    <url>http://maven.apache.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jmeter.home>/home/05472041678/apache-jmeter-2.11</jmeter.home>
+    </properties>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>snapshots.repository.codehaus.org</id>
+            <url>http://snapshots.repository.codehaus.org/</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>Codehaus Snapshots</id>
+            <url>http://nexus.codehaus.org/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>  <!-- Workaround for MNG-2974, see note below -->
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>chronos-maven-plugin</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>chronos-maven-plugin</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <configuration>
+                    <dataId>fixedapitest</dataId>
+                    <input>../TestPlan.jmx</input>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jmeter</goal>
+                            <goal>check</goal>
+                            <goal>savehistory</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build> 
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>chronos-maven-plugin</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <configuration>
+                    <description>API testing results</description>
+                    <title>JMeter Report</title>
+                    <showaverage>true</showaverage>
+                    <showpercentile>true</showpercentile>
+                    <showinfotable>true</showinfotable>
+                    <showtimeinfo>true</showtimeinfo>
+                    <showsummary>true</showsummary>
+                    <showdetails>true</showdetails>
+                    <showresponse>true</showresponse>
+                    <showhistogram>true</showhistogram>
+                    <showthroughput>true</showthroughput>
+                    <showgc>true</showgc>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <configuration>
+                            <dataId>apiloadtest</dataId>
+                            <reportId>jmeter-fixedapi-report</reportId>
+                            <title>JMeter Fixed API Test Report</title>
+                            <description>
+                                <![CDATA[Fixed API Test Report]]>
+                            </description>
+                        </configuration>
+                        <reports>
+                            <report>report</report>
+                            <report>historyreport</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
+</project>

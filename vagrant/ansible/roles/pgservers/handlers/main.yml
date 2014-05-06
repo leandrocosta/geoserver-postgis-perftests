@@ -1,0 +1,24 @@
+---
+
+- name: init postgresql-9.3
+  command: service postgresql-9.3 initdb
+  sudo: yes
+
+- name: start postgresql-9.3
+  service: name=postgresql-9.3 state=started
+  sudo: yes
+
+- name: chkconfig postgresql-9.3
+  command: chkconfig postgresql-9.3 on
+  sudo: yes
+
+- name: create extension postgis
+  command: psql -c 'CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA public; CREATE EXTENSION IF NOT EXISTS postgis_topology'
+  sudo: yes
+  sudo_user: postgres
+
+- name: create template_postgis
+  #command: createdb template_posgis && createlang plpgsql template_postgis && psql -d template_postgis -f /usr/pgsql-9.3/share/contrib/postgis-2.1/postgis.sql && psql -d template_postgis -f /usr/pgsql-9.3/share/contrib/postgis-2.1/spatial_ref_sys.sql
+  command: createdb template_posgis && psql -d template_postgis -f /usr/pgsql-9.3/share/contrib/postgis-2.1/postgis.sql && psql -d template_postgis -f /usr/pgsql-9.3/share/contrib/postgis-2.1/spatial_ref_sys.sql
+  sudo: yes
+  sudo_user: postgres
